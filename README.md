@@ -14,6 +14,18 @@ I just wanted to have a basic reference of what I have in my music, I really don
 
 Pretty straightforward. 
 
+## Requirements
+
+- [Dotnet Core 3](https://dotnet.microsoft.com/download/dotnet-core)
+- [Ionide (VS Code)](http://ionide.io/) or [Rider](https://www.jetbrains.com/rider/)
+
+
+## Dependencies
+
+- [Thoth.Json.Net](https://thoth-org.github.io/Thoth.Json/)
+- [Paket](https://fsprojects.github.io/Paket/get-started.html)
+
+
 ## ToDo
 
  - Verify if the target location has enough free space to copy the files

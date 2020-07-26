@@ -11,8 +11,7 @@
     <Compile Include="Api.fs" />
     <Compile Include="UI.fs" />
     <None Include="Playground.fsx" />
-    <Compile Include="Program.fs" />
-    <Content Include="README.md" />
+    <Compile Include="Program.fs" />   
   </ItemGroup> 
   <Import Project=".paket\Paket.Restore.targets" />
 </Project>
