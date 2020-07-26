@@ -1,5 +1,6 @@
 ﻿namespace SongsBackup.UI
 
+open System.Diagnostics
 open SongsBackup.Api
 open SongsBackup.Types
 
@@ -146,6 +147,17 @@ module ConsoleUI =
         Console.ForegroundColor <- color
         printfn "%s" msg
         Console.ResetColor()
+        
+    let private withTime f =
+        let stopWatch =  Stopwatch()
+        stopWatch.Start()
+        let result = f()
+        stopWatch.Stop()
+        let ts = stopWatch.Elapsed
+        let formattedTime = sprintf "%02i:%02i:%02i.%03i" ts.Hours ts.Minutes ts.Seconds (ts.Milliseconds / 10)
+        displayMsg (sprintf "Elapsed %s" formattedTime) ConsoleColor.Cyan
+        result
+        
 
     let ``process`` msg state =
         match msg, state with
@@ -171,28 +183,31 @@ module ConsoleUI =
             let newMessage = getBackupParams ()
             newMessage |> Some, state
         | GenerateFile (org, dest), _ ->
-            let result = generateAudioFileInfo org dest
-            match result with
-            | Ok _ -> ShowMessage "Json backup file completed" |> Some, CreatedJson(sprintf "%s/data.json" dest)
-            | Error e -> ShowError(processErrorToString e) |> Some, state
+            let f () =
+                let result = generateAudioFileInfo org dest
+                match result with
+                | Ok _ -> ShowMessage "Json backup file completed" |> Some, CreatedJson(sprintf "%s/data.json" dest)
+                | Error e -> ShowError(processErrorToString e) |> Some, state
+            withTime f          
         | CopyFromFile (root, jsonPath, dest), _ ->
-            let result =
-                BackUp.generateBackup
-                    { searchRoot = root
-                      jsonLocation = jsonPath
-                      destinationRoot = dest }
-            match result with
-            | Ok _ ->
-                sprintf "Files has been copied to %s" dest
-                |> ShowMessage
-                |> Some, GeneratedFromJson jsonPath
-            | Error err ->
-                err
-                |> List.map processErrorToString
-                |> String.concat "\n"
-                |> ShowError
-                |> Some, state
-
+            let f () =
+                let result =
+                    BackUp.generateBackup
+                        { searchRoot = root
+                          jsonLocation = jsonPath
+                          destinationRoot = dest }
+                match result with
+                | Ok _ ->
+                    sprintf "Files has been copied to %s" dest
+                    |> ShowMessage
+                    |> Some, GeneratedFromJson jsonPath
+                | Error err ->
+                    err
+                    |> List.map processErrorToString
+                    |> String.concat "\n"
+                    |> ShowError
+                    |> Some, state
+            withTime f
         | ShowMessage msg, _ ->
             displayMsg msg ConsoleColor.Green
             ShowMainMenu |> Some, state

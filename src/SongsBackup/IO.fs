@@ -90,7 +90,7 @@ module Search =
         else SimplePath results.[0] |> Ok
 
     let copy (source: SimplePath) (dest: SimplePath) =
-        printf "try to copy %s to %s \n" source.Value dest.Value
+        printf "trying to copy %s to %s \n" source.Value dest.Value
         try
             let fileName = Path.GetFileName(source.Value)
             let finalDest = Path.Combine(dest.Value, fileName)
