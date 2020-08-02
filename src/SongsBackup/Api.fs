@@ -70,8 +70,6 @@ module BackUp =
 
         (Validation.lift3 create) searchRootOrError jsonLocationOrError destinationRootOrError
 
-
-
     let backUp (paths: BackupPaths) =
         let mapper destination =
             function
@@ -88,6 +86,8 @@ module BackUp =
                     |> Result.map (fun _ -> ())
                     |> Result.mapError searchFileErrorsToProcessError
         }
+        
+     
 
 
     let generateBackup ``params`` =
@@ -99,7 +99,7 @@ module BackUp =
                 | Error errR -> Error [ errR ]
             | Error e -> Error e
 
-        ``params``
+        params
         |> validateParams
         |> Validation.map backUp
         |> Validation.toResult

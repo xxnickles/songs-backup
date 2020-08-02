@@ -111,6 +111,14 @@ module Extension =
         if Regex.IsMatch(s, """\.{1}(\w|\d){2,}""") then Some s else None
 
 
+type Bytes = int64
+
+type FileInformation =
+    {
+        Path: SimplePath
+        Size: Bytes
+    } 
+
 type FolderInfo =
     { Path: string
       Songs: string seq
@@ -147,8 +155,8 @@ module FolderInfo =
 
 
 type SearchInfo =
-    { destination: SimplePath
-      results: HybridResult<SimplePath, SearchFileError> }
+    { Destination: SimplePath
+      Results: HybridResult<FileInformation, SearchFileError> }
 
 type SearchInfoResults =
     | SearchInfo of SearchInfo

@@ -215,6 +215,8 @@ module ConsoleUI =
             displayMsg msg ConsoleColor.Red
             ShowMainMenu |> Some, state
         | Quit, _ -> None, Done
+        | _ , Done -> failwith "Called with incorrect message"
+        | _ , Initial -> failwith "Trying to initialize with incorrect message"
 
     let rec loop msg state =
         let (msg, state) = ``process`` msg state

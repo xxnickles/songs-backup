@@ -80,14 +80,21 @@ module Persistence =
 
 module Search =
 
-    type Finder = string -> Result<SimplePath, SearchFileError>
+    type Finder = string -> Result<FileInformation, SearchFileError>
 
+    let private getFileInfo path =
+        let fi = FileInfo(path)
+        {
+            Path = SimplePath path
+            Size = fi.Length
+        }
+    
     let findSong (baseDir: ValidPath) song =
         printf "looking for %s in %s \n" song baseDir.Value
         let results = Directory.GetFiles(baseDir.Value, song, SearchOption.AllDirectories)
         if Array.isEmpty results
         then FileNotFoundError(FileNotFound song) |> Error
-        else SimplePath results.[0] |> Ok
+        else getFileInfo results.[0] |> Ok
 
     let copy (source: SimplePath) (dest: SimplePath) =
         printf "trying to copy %s to %s \n" source.Value dest.Value
@@ -127,8 +134,8 @@ module Search =
             match Seq.isEmpty f.Songs with
             | false ->
                 SearchInfo
-                    { destination = SimplePath f.Path
-                      results = songsGetter f.Songs }
+                    { Destination = SimplePath f.Path
+                      Results = songsGetter f.Songs }
             | true -> Empty
 
         let folders = folderMapper f.Subfolders
@@ -136,7 +143,7 @@ module Search =
         [ firstLevel ] @ folders
 
     let copyFiles (destinationRoot: ValidPath) (searchResults: SearchInfo) =
-        let finalPath = Paths.combine destinationRoot searchResults.destination
+        let finalPath = Paths.combine destinationRoot searchResults.Destination
         createDirectoryIfNotExist finalPath
         let map (paths: SimplePath list) =
             paths
@@ -144,8 +151,9 @@ module Search =
             |> Array.Parallel.map (fun x -> copy x finalPath)
             |> HybridResult.ofSeqResults
 
-        let (paths, errors) = HybridResult.unpack searchResults.results
+        let (paths, errors) = HybridResult.unpack searchResults.Results
 
         paths
+        |> List.map (fun x -> x.Path)
         |> map
         |> HybridResult.addErrors errors
