@@ -197,8 +197,8 @@ module ConsoleUI =
                           jsonLocation = jsonPath
                           destinationRoot = dest }
                 match result with
-                | Ok _ ->
-                    sprintf "Files has been copied to %s" dest
+                | Ok (total, size) ->
+                    sprintf "%i files have been copied to %s, total size %i bytes " total dest size
                     |> ShowMessage
                     |> Some, GeneratedFromJson jsonPath
                 | Error err ->

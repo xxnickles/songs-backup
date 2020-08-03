@@ -46,10 +46,8 @@ module Folder =
 
 module Json =
     open Thoth.Json.Net
-
     let serializeJson a = Encode.Auto.toString (4, a)
     let deserializeJson<'a> (str: string) = Decode.Auto.fromString<'a> (str)
-
 
 module Reading =
     open Json
@@ -61,7 +59,6 @@ module Reading =
         dto
         |> Result.map fromDto
         |> Result.mapError (fun _ -> FileCouldNotBeLoaded)
-
 
 module Persistence =
     open Json
@@ -77,9 +74,7 @@ module Persistence =
         |> serializeJson
         |> persist dir.Value
 
-
 module Search =
-
     type Finder = string -> Result<FileInformation, SearchFileError>
 
     let private getFileInfo path =
@@ -96,18 +91,19 @@ module Search =
         then FileNotFoundError(FileNotFound song) |> Error
         else getFileInfo results.[0] |> Ok
 
-    let copy (source: SimplePath) (dest: SimplePath) =
-        printf "trying to copy %s to %s \n" source.Value dest.Value
+    let copy (source: FileInformation) (dest: SimplePath) =
+        let sourcePath = source.Path.Value
+        printf "trying to copy %s to %s \n" sourcePath dest.Value
         try
-            let fileName = Path.GetFileName(source.Value)
+            let fileName = Path.GetFileName(sourcePath)
             let finalDest = Path.Combine(dest.Value, fileName)
-            File.Copy(source.Value, finalDest, true) |> Ok
-        with x -> CopyFileError(CopyError source.Value) |> Error
+            File.Copy(sourcePath, finalDest, true)
+            source.Size |> Ok
+        with x -> CopyFileError(CopyError sourcePath) |> Error
 
     let createDirectoryIfNotExist (dest: SimplePath) =
         let dir = System.IO.DirectoryInfo(dest.Value)
         dir.Create()
-
 
     let private getFilesWithFinder (finder: Finder) (songs: string seq) =
         songs
@@ -145,7 +141,7 @@ module Search =
     let copyFiles (destinationRoot: ValidPath) (searchResults: SearchInfo) =
         let finalPath = Paths.combine destinationRoot searchResults.Destination
         createDirectoryIfNotExist finalPath
-        let map (paths: SimplePath list) =
+        let map (paths: FileInformation list) =
             paths
             |> Array.ofList
             |> Array.Parallel.map (fun x -> copy x finalPath)
@@ -153,7 +149,6 @@ module Search =
 
         let (paths, errors) = HybridResult.unpack searchResults.Results
 
-        paths
-        |> List.map (fun x -> x.Path)
+        paths       
         |> map
         |> HybridResult.addErrors errors

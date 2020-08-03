@@ -110,7 +110,6 @@ module Extension =
     let create s =
         if Regex.IsMatch(s, """\.{1}(\w|\d){2,}""") then Some s else None
 
-
 type Bytes = int64
 
 type FileInformation =
